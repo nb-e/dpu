@@ -1,0 +1,16 @@
+D:\Dropbox\Cyano\Evolver\git_clones\dpu\experiment\
+
+#access evolver base files from your comp
+ssh pi@192.168.1.2
+pw: DbLaoXDr <-type rather than paste
+
+
+
+#list all calibration files
+python calibration/calibrate.py -a <ip_address> -g
+python calibration/calibrate.py -a 192.168.1.2 -g
+
+
+#run calibration code?
+python calibration/calibrate.py -a <ip_address> -n <file_name> -t linear -f <name_after_fit> -p temp
+python calibration/calibrate.py -a 192.168.1.2 -n temp_cals -t linear -f temps2 -p temp
