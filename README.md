@@ -2,6 +2,19 @@ dpu
 ===
 The Data Processing Module (DPU) portion of the eVOLVER code are Python scripts used to interface with the machine. This is where experimental scripts can be written, feedback loops between parameters can be programmed, or calibration files can be updated on eVOLVER.
 
+## Changed to git for Windows Compatible File Paths
+#### Error found:
+error: invalid path 'graphing/src/cloudevolution/Icon?'
+fatal: unable to checkout working tree
+warning: Clone succeeded, but checkout failed.
+- Due to / in file path unallowable on Windows
+
+#### Solution:
+	1. Download the repository from github
+	2. Follow this
+	3. Force the push
+		a. git push -f -u origin main
+
 ## Run experimental scripts code for eVOLVER
 
 #### Mac
