@@ -7,13 +7,18 @@ The Data Processing Module (DPU) portion of the eVOLVER code are Python scripts 
 error: invalid path 'graphing/src/cloudevolution/Icon?'
 fatal: unable to checkout working tree
 warning: Clone succeeded, but checkout failed.
-- Due to / in file path unallowable on Windows
+- Due to the "/"" in file path unallowable on Windows
 
 #### Solution:
-	1. Download the repository from github
-	2. Follow this
-	3. Force the push
-		a. git push -f -u origin main
+1. Download the repository from github
+2. Follow github new repository guide
+	git init
+	git add README.md
+	git commit -m "<message>"
+	git branch -M main
+	git remote add origin https://github.com/nb-e/dpu
+3. Force the push
+	git push -f -u origin main
 
 ## Run experimental scripts code for eVOLVER
 
