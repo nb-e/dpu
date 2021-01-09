@@ -29,6 +29,9 @@ LIGHT_INITIAL = [0] * 16 # values between 0 and 4096
 #Alternatively enter 16-value list to set different values
 #LIGHT_INITIAL = [0,0,0,0,0,4096...]
 
+BUBBLE_INITIAL = [3000] * 16
+# Set begginning value of the aeration pumps
+
 VOLUME =  25 #mL, determined by vial cap straw length
 PUMP_CAL_FILE = 'pump_cal.txt' #tab delimited, mL/s with 16 influx pumps on first row, etc.
 LIGHT_CAL_FILE = 'light_cal.txt'
@@ -159,28 +162,28 @@ def turbidostat(eVOLVER, input_data, vials, elapsed_time):
 
     # send fluidic command only if we are actually turning on any of the pumps
     if MESSAGE != ['--'] * 48:
+        MESSAGE[32:] = BUBBLE_INITIAL
+        print('Fluid Command',MESSAGE)
         eVOLVER.fluid_command(MESSAGE)
+    else:
+        print('No fluid command')
 
-    even_odd = int(str(elapsed_time)[-1])%2
-
-    if even_odd == 0: 
-        light_MESSAGE = ['3000']*16
-        print('ON')
-        eVOLVER.update_light(light_MESSAGE)
-    elif even_odd == 1:
-        light_MESSAGE = ['0']*16
-        print('OFF')
-        eVOLVER.update_light(light_MESSAGE)
+    ### Command for static light value ###
+    light_MESSAGE = ['2060']*16
+    eVOLVER.update_light(light_MESSAGE)
     print('Set Light',elapsed_time)
 
-    # light_MESSAGE = ['0']*16
-    # print('OFF')
-    # eVOLVER.update_light(light_MESSAGE)
-
-
-
-    # if light_MESSAGE != ['--'] * 16:
+    ### Command for flashing light ###
+    # even_odd = int(str(elapsed_time)[-1])%2
+    # if even_odd == 0: 
+    #     light_MESSAGE = ['3000']*16
+    #     print('ON')
     #     eVOLVER.update_light(light_MESSAGE)
+    # elif even_odd == 1:
+    #     light_MESSAGE = ['0']*16
+    #     print('OFF')
+    #     eVOLVER.update_light(light_MESSAGE)
+    # print('Set Light',elapsed_time)
 
     # your_function_here() #good spot to call non-feedback functions for dynamic temperature, stirring, etc.
 

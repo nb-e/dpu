@@ -16,7 +16,7 @@ from socketIO_client import SocketIO, BaseNamespace
 import custom_script
 from custom_script import EXP_NAME, PUMP_CAL_FILE, LIGHT_CAL_FILE
 from custom_script import EVOLVER_IP, EVOLVER_PORT, OPERATION_MODE
-from custom_script import STIR_INITIAL, TEMP_INITIAL, LIGHT_INITIAL
+from custom_script import STIR_INITIAL, TEMP_INITIAL, LIGHT_INITIAL, BUBBLE_INITIAL
 
 # Should not be changed
 # vials to be considered/excluded should be handled
@@ -413,6 +413,9 @@ class EvolverNamespace(BaseNamespace):
                                   directory='chemo_config')
 
             self.update_stir_rate(STIR_INITIAL)
+            BUBBLE_INITIAL = [0] * 32 + BUBBLE_INITIAL
+            self.fluid_command(BUBBLE_INITIAL)
+            print('Set initial bubble',BUBBLE_INITIAL)
 
             if always_yes:
                 exp_blank = 'y'
