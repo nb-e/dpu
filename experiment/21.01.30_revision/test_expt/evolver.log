@@ -1,8 +1,43 @@
-2021-01-30 11:57:35 - eVOLVER - [INFO] - updating temperatures (max. deltaT is 7.03)
-2021-01-30 11:57:35 - eVOLVER - [INFO] - setting initial OD reading
-2021-01-30 11:57:45 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.12)
-2021-01-30 11:58:05 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.15)
-2021-01-30 11:58:25 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.12)
-2021-01-30 11:58:45 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.12)
-2021-01-30 11:59:05 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.09)
-2021-01-30 11:59:26 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.12)
+2021-02-27 13:18:33 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.06)
+2021-02-27 13:18:33 - eVOLVER - [INFO] - setting initial OD reading
+2021-02-27 13:18:52 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.15)
+2021-02-27 13:19:13 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.09)
+2021-02-27 13:19:33 - eVOLVER - [ERROR] - Incomplete data received, error with measurements
+2021-02-27 13:19:33 - eVOLVER - [ERROR] - could not tranform raw data, skipping user-defined functions
+2021-02-27 13:19:53 - eVOLVER - [ERROR] - Incomplete data received, error with measurements
+2021-02-27 13:19:53 - eVOLVER - [ERROR] - could not tranform raw data, skipping user-defined functions
+2021-02-27 13:20:13 - eVOLVER - [ERROR] - Incomplete data received, error with measurements
+2021-02-27 13:20:13 - eVOLVER - [ERROR] - could not tranform raw data, skipping user-defined functions
+2021-02-27 13:20:33 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.06)
+2021-02-27 13:21:13 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.09)
+2021-02-27 13:21:33 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.15)
+2021-02-27 13:21:53 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.12)
+2021-02-27 13:22:13 - eVOLVER - [ERROR] - Incomplete data received, error with measurements
+2021-02-27 13:22:13 - eVOLVER - [ERROR] - could not tranform raw data, skipping user-defined functions
+2021-02-27 13:22:33 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.15)
+2021-02-27 13:22:53 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.12)
+2021-02-27 13:23:12 - eVOLVER - [ERROR] - Incomplete data received, error with measurements
+2021-02-27 13:23:12 - eVOLVER - [ERROR] - could not tranform raw data, skipping user-defined functions
+2021-02-27 13:23:53 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.12)
+2021-02-27 13:24:13 - eVOLVER - [ERROR] - Incomplete data received, error with measurements
+2021-02-27 13:24:13 - eVOLVER - [ERROR] - could not tranform raw data, skipping user-defined functions
+2021-02-27 13:24:32 - eVOLVER - [ERROR] - Incomplete data received, error with measurements
+2021-02-27 13:24:32 - eVOLVER - [ERROR] - could not tranform raw data, skipping user-defined functions
+2021-02-27 13:24:53 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.12)
+2021-02-27 13:25:13 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.12)
+2021-02-27 13:25:33 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.15)
+2021-02-27 13:25:53 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.15)
+2021-02-27 13:26:13 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.09)
+2021-02-27 13:26:33 - eVOLVER - [ERROR] - Incomplete data received, error with measurements
+2021-02-27 13:26:33 - eVOLVER - [ERROR] - could not tranform raw data, skipping user-defined functions
+2021-02-27 13:26:53 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.09)
+2021-02-27 13:27:13 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.15)
+2021-02-27 13:27:33 - eVOLVER - [ERROR] - Incomplete data received, error with measurements
+2021-02-27 13:27:33 - eVOLVER - [ERROR] - could not tranform raw data, skipping user-defined functions
+2021-02-27 13:27:53 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.15)
+2021-02-27 13:28:13 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.12)
+2021-02-27 13:28:33 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.09)
+2021-02-27 13:28:52 - eVOLVER - [ERROR] - Incomplete data received, error with measurements
+2021-02-27 13:28:52 - eVOLVER - [ERROR] - could not tranform raw data, skipping user-defined functions
+2021-02-27 13:29:13 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.09)
+2021-02-27 13:29:32 - eVOLVER - [INFO] - actual temperature doesn't match configuration (yet? max deltaT is 63.06)

@@ -1,0 +1,6 @@
+Experiment: test_expt vial 3, Sun Jan 31 16:34:41 2021
+0.1087,nan
+0.1143,nan
+0.1197,nan
+0.1309,nan
+0.1364,nan

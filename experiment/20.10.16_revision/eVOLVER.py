@@ -60,12 +60,10 @@ class EvolverNamespace(BaseNamespace):
         logger.debug('elapsed time: %.4f hours' % elapsed_time)
         print("{0}: {1} Hours".format(EXP_NAME, elapsed_time))
         # are the calibrations in yet?
-        print('Checking for Calibrations')
         if not self.check_for_calibrations():
             logger.warning('calibration files still missing, skipping custom '
                            'functions')
             return
-        print('Calibrations Good')
         with open(OD_CAL_PATH) as f:
             od_cal = json.load(f)
         with open(TEMP_CAL_PATH) as f:
@@ -80,7 +78,6 @@ class EvolverNamespace(BaseNamespace):
             logger.error('could not tranform raw data, skipping user-'
                          'defined functions')
             return
-        print('Applied calibrations + transform data')
         # should we "blank" the OD?
         if self.use_blank and self.OD_initial is None:
             logger.info('setting initial OD reading')
@@ -94,7 +91,6 @@ class EvolverNamespace(BaseNamespace):
                         VIALS, 'OD')
         self.save_data(data['transformed']['temp'], elapsed_time,
                         VIALS, 'temp')
-        print('Saved data')
 
         for param in od_cal['params']:
             self.save_data(data['data'].get(param, []), elapsed_time,
@@ -104,7 +100,6 @@ class EvolverNamespace(BaseNamespace):
                         VIALS, param + '_raw')
         # run custom functions
         self.custom_functions(data, VIALS, elapsed_time)
-        print('Ran custom functions')
         # save variables
         self.save_variables(self.start_time, self.OD_initial)
 
@@ -150,7 +145,7 @@ class EvolverNamespace(BaseNamespace):
         temp_data = data['data'].get(temp_cal['params'][0], None)
         set_temp_data = data['config'].get('temp', {}).get('value', None)
 
-        # print(od_data,'\n',temp_data,'\n',set_temp_data)
+        # print(od_data,'\n',od_cal['params'][0])#,temp_data,'\n',set_temp_data)
 
         if od_data is None or temp_data is None or set_temp_data is None:
             print('Incomplete data recieved, Error with measurement')
@@ -462,6 +457,7 @@ class EvolverNamespace(BaseNamespace):
         return result
 
     def save_data(self, data, elapsed_time, vials, parameter):
+        print('SAVING DATA::'+parameter+'\n',data,'\nTime::', elapsed_time,'\n\n')
         if len(data) == 0:
             return
         for x in vials:

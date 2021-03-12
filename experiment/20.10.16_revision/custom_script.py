@@ -166,12 +166,12 @@ def turbidostat(eVOLVER, input_data, vials, elapsed_time):
         print('Fluid Command',MESSAGE)
         eVOLVER.fluid_command(MESSAGE)
     else:
-        print('No fluid command')
+        print()#'No fluid command')
 
     ### Command for static light value ###
     light_MESSAGE = ['2060']*16
     eVOLVER.update_light(light_MESSAGE)
-    print('Set Light',elapsed_time)
+    # print('Set Light',elapsed_time)
 
     ### Command for flashing light ###
     # even_odd = int(str(elapsed_time)[-1])%2

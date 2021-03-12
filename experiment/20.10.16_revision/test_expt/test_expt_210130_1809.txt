@@ -166,12 +166,12 @@ def turbidostat(eVOLVER, input_data, vials, elapsed_time):
         print('Fluid Command',MESSAGE)
         eVOLVER.fluid_command(MESSAGE)
     else:
-        print('No fluid command')
+        print()#'No fluid command')
 
     ### Command for static light value ###
     light_MESSAGE = ['2060']*16
     eVOLVER.update_light(light_MESSAGE)
-    print('Set Light',elapsed_time)
+    # print('Set Light',elapsed_time)
 
     ### Command for flashing light ###
     # even_odd = int(str(elapsed_time)[-1])%2
@@ -189,100 +189,7 @@ def turbidostat(eVOLVER, input_data, vials, elapsed_time):
 
     # end of turbidostat() fxn
 
-def chemostat(eVOLVER, input_data, vials, elapsed_time):
-    OD_data = input_data['transformed']['od_90']
 
-    ##### USER DEFINED VARIABLES #####
-    start_OD = 0 # ~OD600, set to 0 to start chemostate dilutions at any positive OD
-    start_time = 0 #hours, set 0 to start immediately
-    # Note that script uses AND logic, so both start time and start OD must be surpassed
-
-    chemostat_vials = vials #vials is all 16, can set to different range (ex. [0,1,2,3]) to only trigger tstat on those vials
-
-    rate_config = [0.5] * 16 #to set all vials to the same value, creates 16-value list
-    #UNITS of 1/hr, NOT mL/hr, rate = flowrate/volume, so dilution rate ~ growth rate, set to 0 for unused vials
-
-    #Alternatively, use 16 value list to set different rates, use 0 for vials not being used
-    #rate_config = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6]
-
-    ##### END OF USER DEFINED VARIABLES #####
-
-
-    ##### Chemostat Settings #####
-
-    #Tunable settings for bolus, etc. Unlikely to change between expts
-    bolus = 0.5 #mL, can be changed with great caution, 0.2 is absolute minimum
-
-    ##### End of Chemostat Settings #####
-
-    save_path = os.path.dirname(os.path.realpath(__file__)) #save path
-    flow_rate = eVOLVER.get_flow_rate() #read from calibration file
-    period_config = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] #initialize array
-    bolus_in_s = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] #initialize array
-
-
-    ##### Chemostat Control Code Below #####
-
-    for x in chemostat_vials: #main loop through each vial
-
-        # Update chemostat configuration files for each vial
-
-        #initialize OD and find OD path
-        file_name =  "vial{0}_OD.txt".format(x)
-        OD_path = os.path.join(save_path, EXP_NAME, 'OD', file_name)
-        data = np.genfromtxt(OD_path, delimiter=',')
-        average_OD = 0
-        enough_ODdata = (len(data) > 7) #logical, checks to see if enough data points (couple minutes) for sliding window
-
-        if enough_ODdata: #waits for seven OD measurements (couple minutes) for sliding window
-
-            #calculate median OD
-            od_values_from_file = []
-            for n in range(1, 7):
-                od_values_from_file.append(data[len(data)-n][1])
-            average_OD = float(np.median(od_values_from_file))
-
-            # set chemostat config path and pull current state from file
-            file_name =  "vial{0}_chemo_config.txt".format(x)
-            chemoconfig_path = os.path.join(save_path, EXP_NAME,
-                                            'chemo_config', file_name)
-            chemo_config = np.genfromtxt(chemoconfig_path, delimiter=',')
-            last_chemoset = chemo_config[len(chemo_config)-1][0] #should t=0 initially, changes each time a new command is written to file
-            last_chemophase = chemo_config[len(chemo_config)-1][1] #should be zero initially, changes each time a new command is written to file
-            last_chemorate = chemo_config[len(chemo_config)-1][2] #should be 0 initially, then period in seconds after new commands are sent
-
-            # once start time has passed and culture hits start OD, if no command has been written, write new chemostat command to file
-            if ((elapsed_time > start_time) & (average_OD > start_OD)):
-
-                #calculate time needed to pump bolus for each pump
-                bolus_in_s[x] = bolus/flow_rate[x]
-
-                # calculate the period (i.e. frequency of dilution events) based on user specified growth rate and bolus size
-                if rate_config[x] > 0:
-                    period_config[x] = (3600*bolus)/((rate_config[x])*VOLUME) #scale dilution rate by bolus size and volume
-                else: # if no dilutions needed, then just loops with no dilutions
-                    period_config[x] = 0
-
-                if  (last_chemorate != period_config[x]):
-                    print('Chemostat updated in vial {0}'.format(x))
-                    logger.info('chemostat initiated for vial %d, period %.2f'
-                                % (x, period_config[x]))
-                    # writes command to chemo_config file, for storage
-                    text_file = open(chemoconfig_path, "a+")
-                    text_file.write("{0},{1},{2}\n".format(elapsed_time,
-                                                           (last_chemophase+1),
-                                                           period_config[x])) #note that this changes chemophase
-                    text_file.close()
-        else:
-            logger.debug('not enough OD measurements for vial %d' % x)
-
-        # your_FB_function_here() #good spot to call feedback functions for dynamic temperature, stirring, etc for ind. vials
-    # your_function_here() #good spot to call non-feedback functions for dynamic temperature, stirring, etc.
-
-    eVOLVER.update_chemo(input_data, chemostat_vials, bolus_in_s, period_config) #compares computed chemostat config to the remote one
-    # end of chemostat() fxn
-
-# def your_function_here(): # good spot to define modular functions for dynamics or feedback
 
 if __name__ == '__main__':
     print('Please run eVOLVER.py instead')
