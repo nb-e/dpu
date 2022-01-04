@@ -23,6 +23,8 @@ from custom_script import STIR_INITIAL, TEMP_INITIAL
 # vials to be considered/excluded should be handled
 # inside the custom functions
 VIALS = [x for x in range(16)]
+#IPP_SELECT_ADDRS = [47, 46, 45, 44, 43, 42, 41, 40]
+IPP_SELECT_ADDRS = [40, 41, 42, 43]
 
 SAVE_PATH = os.path.dirname(os.path.realpath(__file__))
 EXP_DIR = os.path.join(SAVE_PATH, EXP_NAME)
@@ -99,6 +101,8 @@ class EvolverNamespace(BaseNamespace):
                             VIALS, 'OD')
             self.save_data(data['transformed']['temp'], elapsed_time,
                             VIALS, 'temp')
+            self.save_data(data['data']['lux'], elapsed_time,
+                            VIALS, 'lux')
 
             for param in od_cal['params']:
                 self.save_data(data['data'].get(param, []), elapsed_time,
@@ -111,7 +115,14 @@ class EvolverNamespace(BaseNamespace):
             return
 
         # run custom functions
-        self.custom_functions(data, VIALS, elapsed_time)
+        run_efflux = False
+        time_in_mins = int(elapsed_time * 60)
+        if time_in_mins % 3 == 0 and time_in_mins is not 0 and elapsed_time * 60 - self.last_efflux * 60 > 2:
+            run_efflux = True
+            print("running efflux")
+            self.last_efflux = elapsed_time
+
+        self.custom_functions(data, VIALS, elapsed_time, run_efflux)
         # save variables
         self.save_variables(self.start_time, self.OD_initial)
 
@@ -272,11 +283,34 @@ class EvolverNamespace(BaseNamespace):
         logger.debug('temperature command: %s' % data)
         self.emit('command', data, namespace = '/dpu-evolver')
 
+    def od_led_command(self, od):
+        logger.debug('led command: %s' % od)
+        command = {'param': 'od_led', 'value': od,
+                    'recurring': False, 'immediate': True}
+        self.emit('command', command, namespace = '/dpu-evolver')
+
     def fluid_command(self, MESSAGE):
         logger.debug('fluid command: %s' % MESSAGE)
         command = {'param': 'pump', 'value': MESSAGE,
                    'recurring': False ,'immediate': True}
         self.emit('command', command, namespace='/dpu-evolver')
+
+    def ipp_command(self, addr, vial, rate):
+        self.stop_all_pumps(regular = False, ipp = True)
+        time.sleep(2)
+        message = ['--'] * 48
+        message[addr] = "{0}|{1}|{2}".format(rate, 1, 1)
+        message[addr+1] = "{0}|{1}|{2}".format(rate, 1, 2)
+        message[addr+2] = "{0}|{1}|{2}".format(rate, 1, 3)
+        self.fluid_command(message)
+        time.sleep(2)
+        message = ['--'] * 48
+        if vial == 'all':
+            for addr in IPP_SELECT_ADDRS:
+                message[addr] = 30
+        else:
+            message[IPP_SELECT_ADDRS[int(vial)]] = 30
+        self.fluid_command(message)
 
     def update_chemo(self, data, vials, bolus_in_s, period_config, immediate = False):
         current_pump = data['config']['pump']['value']
@@ -299,20 +333,31 @@ class EvolverNamespace(BaseNamespace):
                 # influx
                 MESSAGE['value'][x] = '%.2f|%d' % (bolus_in_s[x], period_config[x])
                 # efflux
-                MESSAGE['value'][x + 16] = '%.2f|%d' % (bolus_in_s[x] * 2,
+                MESSAGE['value'][x + 16] = '%.2f|%d' % (bolus_in_s[x] * 4,
                                                         period_config[x])
 
         if MESSAGE['value'] != current_pump:
             logger.info('updating chemostat: %s' % MESSAGE)
             self.emit('command', MESSAGE, namespace = '/dpu-evolver')
 
-    def stop_all_pumps(self, ):
-        data = {'param': 'pump',
-                'value': ['0'] * 48,
-                'recurring': False,
-                'immediate': True}
+    def stop_all_pumps(self, regular = True, ipp = True):
+        if regular:
+            data = {'param': 'pump',
+                    'value': ['0'] * 48,
+                    'recurring': False,
+                    'immediate': True}
+            self.emit('command', data, namespace = '/dpu-evolver')
+        if ipp:
+            value = ['--']*48
+            value[32] = '0|1|1'
+            ipp_data = {'param': 'pump', 
+                    'value': value,               
+                    'recurring': False,
+                    'immediate': True}
+            self.emit('command', ipp_data, namespace = '/dpu-evolver') 
         logger.info('stopping all pumps')
-        self.emit('command', data, namespace = '/dpu-evolver')
+        
+           
 
     def _create_file(self, vial, param, directory=None, defaults=None):
         if defaults is None:
@@ -374,7 +419,9 @@ class EvolverNamespace(BaseNamespace):
             os.makedirs(os.path.join(EXP_DIR, 'ODset'))
             os.makedirs(os.path.join(EXP_DIR, 'growthrate'))
             os.makedirs(os.path.join(EXP_DIR, 'chemo_config'))
+            os.makedirs(os.path.join(EXP_DIR, 'lux'))
             setup_logging(log_name, quiet, verbose)
+
             for x in vials:
                 exp_str = "Experiment: {0} vial {1}, {2}".format(EXP_NAME,
                                                                  x,
@@ -405,6 +452,10 @@ class EvolverNamespace(BaseNamespace):
                                   defaults=["0,0,0",
                                             "0,0,0"],
                                   directory='chemo_config')
+                # make lux file
+                self._create_file(x, 'lux',
+                                  defaults=["0,0,0"],
+                                  directory='lux')                 
 
             stir_rate = STIR_INITIAL
             temp_values = TEMP_INITIAL
@@ -462,7 +513,10 @@ class EvolverNamespace(BaseNamespace):
             file_name =  "vial{0}_{1}.txt".format(x, parameter)
             file_path = os.path.join(EXP_DIR, parameter, file_name)
             text_file = open(file_path, "a+")
-            text_file.write("{0},{1}\n".format(elapsed_time, data[x]))
+            if parameter == 'lux':
+                text_file.write("{0},{1},{2}\n".format(elapsed_time, data[x], data[x+16]))
+            else:
+                text_file.write("{0},{1}\n".format(elapsed_time, data[x]))
             text_file.close()
 
     def save_variables(self, start_time, OD_initial):
@@ -508,56 +562,7 @@ class EvolverNamespace(BaseNamespace):
         text_file.write("{0},{1}\n".format(elapsed_time, slope))
         text_file.close()
 
-    def tail_to_np(self, path, window=10, BUFFER_SIZE=512):
-        """
-        Reads file from the end and returns a numpy array with the data of the last 'window' lines.
-        Alternative to np.genfromtxt(path) by loading only the needed lines instead of the whole file.
-        """
-        f = open(path, 'rb')
-        if window == 0:
-            return []
-
-        f.seek(0, os.SEEK_END)
-        remaining_bytes = f.tell()
-        size = window + 1  # Read one more line to avoid broken lines
-        block = -1
-        data = []
-
-        while size > 0 and remaining_bytes > 0:
-            if remaining_bytes - BUFFER_SIZE > 0:
-                # Seek back one whole BUFFER_SIZE
-                f.seek(block * BUFFER_SIZE, os.SEEK_END)
-                # read BUFFER
-                bunch = f.read(BUFFER_SIZE)
-            else:
-                # file too small, start from beginning
-                f.seek(0, 0)
-                # only read what was not read
-                bunch = f.read(remaining_bytes)
-
-            bunch = bunch.decode('utf-8')
-            data.append(bunch)
-            size -= bunch.count('\n')
-            remaining_bytes -= BUFFER_SIZE
-            block -= 1
-
-        data = ''.join(reversed(data)).splitlines()[-window:]
-
-        if len(data) < window:
-            # Not enough data
-            return np.asarray([])
-
-        for c, v in enumerate(data):
-            data[c] = v.split(',')
-
-        try:
-            data = np.asarray(data, dtype=np.float64)
-            return data
-        except ValueError:
-            # It is reading the header
-            return np.asarray([])
-
-    def custom_functions(self, data, vials, elapsed_time):
+    def custom_functions(self, data, vials, elapsed_time, last_efflux):
         # load user script from custom_script.py
         mode = self.experiment_params['function'] if self.experiment_params else OPERATION_MODE
         if mode == 'turbidostat':
@@ -659,6 +664,8 @@ if __name__ == '__main__':
     # for commands from the electron app. 
     nbsr = NBSR(sys.stdin)
     paused = False
+
+    EVOLVER_NS.selection = 0
 
     # logging setup
 
