@@ -25,19 +25,22 @@ TEMP_INITIAL = [37] * 16 #degrees C, makes 16-value list
 #Alternatively enter 16-value list to set different values
 #TEMP_INITIAL = [30,30,30,30,32,32,32,32,34,34,34,34,36,36,36,36]
 
-STIR_INITIAL = [6] * 16 #try 8,10,12 etc; makes 16-value list
+STIR_INITIAL = [8] * 16 #try 8,10,12 etc; makes 16-value list
 #Alternatively enter 16-value list to set different values
 #STIR_INITIAL = [7,7,7,7,8,8,8,8,9,9,9,9,10,10,10,10]
 
 LAGOON_VOLUME = 10 # ml
-VOLUME =  30 #mL, determined by vial cap straw length
+LAGOON_RATE = 0.5 # V/h flow rate in the lagoon
+RESERVOIR_RATE = 1 # V/h flow rate in the reservoir
+VOLUME =  30 #mL, in reservoir determined by vial cap straw length
 PUMP_CAL_FILE = 'pump_cal.txt' #tab delimited, mL/s with 16 influx pumps on first row, etc.
 OPERATION_MODE = 'chemostat' #use to choose between 'turbidostat' and 'chemostat' functions
 
 
 # IPP Calibrations. Function of form rate = c*frequency^b
-c = [44.978, 63.326, 68.895, 59.376, 51.482, 35.617, 65.564, 75.919]
-b = [.9334, .9009, .8467, .8837, .8936, .8888, .826, .7487]
+c = 3.3
+b = 0.77
+STOCK_CONC = 20 # X times greater than the working concentration
 
 # if using a different mode, name your function as the OPERATION_MODE variable
 
@@ -80,31 +83,32 @@ def ipp_calculations(elapsed_time, eVOLVER):
     v2v_inf_start = 0.5 # V/h
 
     # Start ipp protocol
-    if (elapsed_time > ipp_min_waiting_time):
-        vial = eVOLVER.current_vial
-        if (elapsed_time < ipp_min_waiting_time + bolus_time):
-            # Start bolus      
-            print("ipp bolus")      
-            v2v_rate = bolus_rate
-            vial = 'all'
-        elif (elapsed_time > ipp_min_waiting_time + bolus_time and elapsed_time < ramp_start):
-            # End bolus - start initial rates
-            print("ipp bolus end, init")
-            v2v_rate = rate_to_hz((init_rate * LAGOON_VOLUME), c[eVOLVER.current_vial], b[eVOLVER.current_vial])
-            vial = str(eVOLVER.current_vial)
-        elif(elapsed_time > ramp_start and elapsed_time < ramp_start + hours_to_ramp):
-            print("Ramping")
-            ramp_slope = (LAGOON_VOLUME * (v2v_end_rate - v2v_start_rate)) / hours_to_ramp
-            v2v_rate = rate_to_hz(((elapsed_time - ramp_start) * ramp_slope + (v2v_start_rate * LAGOON_VOLUME)) / (15 / 60), c[eVOLVER.current_vial], b[eVOLVER.current_vial])
-        elif (elapsed_time >= ramp_start + hours_to_ramp):
-            print("holding")
-            v2v_rate = rate_to_hz((v2v_end_rate * LAGOON_VOLUME) / (15 / 60), c[eVOLVER.current_vial], b[eVOLVER.current_vial])  
-        
-        print("running ipp cmd. addr: {0}, vial: {1}, rate: {2}".format(v2v_addr, vial, round(v2v_rate,3)))
-        eVOLVER.ipp_command(v2v_addr, vial, round(v2v_rate,3))    
-        eVOLVER.current_vial = eVOLVER.current_vial + 1
-        if eVOLVER.current_vial == 4:
-            eVOLVER.current_vial = 0
+    # if (elapsed_time > ipp_min_waiting_time):
+    #     vial = eVOLVER.current_vial
+    #     if (elapsed_time < ipp_min_waiting_time + bolus_time):
+    #         # Start bolus
+    #         print("ipp bolus")
+    #         v2v_rate = bolus_rate
+    #         vial = 'all'
+    #     elif (elapsed_time > ipp_min_waiting_time + bolus_time and elapsed_time < ramp_start):
+    #         # End bolus - start initial rates
+    #         print("ipp bolus end, init")
+    #         v2v_rate = rate_to_hz((init_rate * LAGOON_VOLUME), c[eVOLVER.current_vial], b[eVOLVER.current_vial])
+    #         vial = str(eVOLVER.current_vial)
+    #     elif(elapsed_time > ramp_start and elapsed_time < ramp_start + hours_to_ramp):
+    #         print("Ramping")
+    #         ramp_slope = (LAGOON_VOLUME * (v2v_end_rate - v2v_start_rate)) / hours_to_ramp
+    #         v2v_rate = rate_to_hz(((elapsed_time - ramp_start) * ramp_slope + (v2v_start_rate * LAGOON_VOLUME)) / (15 / 60), c[eVOLVER.current_vial], b[eVOLVER.current_vial])
+    #     elif (elapsed_time >= ramp_start + hours_to_ramp):
+    #         print("holding")
+    vial = 'all'
+    v2v_rate = rate_to_hz(LAGOON_VOLUME * LAGOON_RATE / STOCK_CONC, c, b)  
+    # v2v_rate = 0
+    print("running ipp cmd. addr: {0}, vial: {1}, rate: {2}".format(v2v_addr, vial, round(v2v_rate,3)))
+    eVOLVER.ipp_command(v2v_addr, vial, round(v2v_rate,3))    
+    eVOLVER.current_vial = eVOLVER.current_vial + 1
+    #     if eVOLVER.current_vial == 4:
+    #         eVOLVER.current_vial = 0
 
 def turbidostat(eVOLVER, input_data, vials, elapsed_time, run_efflux):
     OD_data = input_data['transformed']['od']
@@ -235,33 +239,23 @@ def turbidostat(eVOLVER, input_data, vials, elapsed_time, run_efflux):
 
     # end of turbidostat() fxn
 
-def chemostat(eVOLVER, input_data, vials, elapsed_time):
+def chemostat(eVOLVER, input_data, vials, elapsed_time, run_efflux):
     OD_data = input_data['transformed']['od']
 
     ##### USER DEFINED VARIABLES #####
-    start_OD = [0] * 16 # ~OD600, set to 0 to start chemostate dilutions at any positive OD
-    start_time = [0] * 16 #hours, set 0 to start immediately
+    start_OD = 1 # ~OD600, set to 0 to start chemostate dilutions at any positive OD
+    start_time = 6 #hrs, set 0 to start immediately
     # Note that script uses AND logic, so both start time and start OD must be surpassed
 
     OD_values_to_average = 6  # Number of values to calculate the OD average
 
     chemostat_vials = vials #vials is all 16, can set to different range (ex. [0,1,2,3]) to only trigger tstat on those vials
-
-    rate_config = [0.5] * 16 #to set all vials to the same value, creates 16-value list
-    stir = [8] * 16
-
     #UNITS of 1/hr, NOT mL/hr, rate = flowrate/volume, so dilution rate ~ growth rate, set to 0 for unused vials
 
     #Alternatively, use 16 value list to set different rates, use 0 for vials not being used
-    rate_config = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-
+    # rate_config = [1, 1, 1, 1, 0.5, 0.5, 0.5, 0.5, 1, 1, 1, 1, 0.5, 0.5, 0.5, 0.5]
+    rate_config = ([RESERVOIR_RATE] * 4) + ([LAGOON_RATE] * 4) + ([RESERVOIR_RATE] * 4) + ([LAGOON_RATE] * 4)
     ##### END OF USER DEFINED VARIABLES #####
-
-    if eVOLVER.experiment_params is not None:
-        rate_config = list(map(lambda x: x['rate'], eVOLVER.experiment_params['vial_configuration']))
-        stir = list(map(lambda x: x['stir'], eVOLVER.experiment_params['vial_configuration']))
-        start_time= list(map(lambda x: x['startTime'], eVOLVER.experiment_params['vial_configuration']))
-        start_OD= list(map(lambda x: x['startOD'], eVOLVER.experiment_params['vial_configuration']))
 
     ##### Chemostat Settings #####
 
@@ -330,21 +324,16 @@ def chemostat(eVOLVER, input_data, vials, elapsed_time):
         else:
             logger.debug('not enough OD measurements for vial %d' % x)
 
-        # your_FB_function_here() #good spot to call feedback functions for dynamic temperature, stirring, etc for ind. vials
-    # your_function_here() #good spot to call non-feedback functions for dynamic temperature, stirring, etc.
+    # ipp_calculations(elapsed_time, eVOLVER) # can't be right next to update_chemo without a wait -- second command gets run before first finishes
 
-    eVOLVER.update_chemo(input_data, chemostat_vials, bolus_in_s, period_config) #compares computed chemostat config to the remote one
     MESSAGE = ['--'] * 48
     if run_efflux:
         for addr in efflux_addrs:
             MESSAGE[addr] = 13
         eVOLVER.fluid_command(MESSAGE)
-    # end of chemostat() fxn
-    eVOLVER.selection = 1 - eVOLVER.selection 
 
+    time.sleep(2)
     eVOLVER.update_chemo(input_data, chemostat_vials, bolus_in_s, period_config) #compares computed chemostat config to the remote one
-
-# def your_function_here(): # good spot to define modular functions for dynamics or feedback
 
 if __name__ == '__main__':
     print('Please run eVOLVER.py instead')
