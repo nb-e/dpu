@@ -110,7 +110,7 @@ def ipp_calculations(elapsed_time, eVOLVER):
     #     if eVOLVER.current_vial == 4:
     #         eVOLVER.current_vial = 0
 
-def turbidostat(eVOLVER, input_data, vials, elapsed_time, run_efflux):
+def turbidostat(eVOLVER, input_data, vials, elapsed_time):
     OD_data = input_data['transformed']['od']
 
     ##### USER DEFINED VARIABLES #####
@@ -151,9 +151,7 @@ def turbidostat(eVOLVER, input_data, vials, elapsed_time, run_efflux):
 
     # fluidic message: initialized so that no change is sent
     MESSAGE = ['--'] * 48
-    if run_efflux:
-        for addr in efflux_addrs:
-            MESSAGE[addr] = 6
+
     for x in turbidostat_vials: #main loop through each vial
 
         # Update turbidostat configuration files for each vial
@@ -239,7 +237,7 @@ def turbidostat(eVOLVER, input_data, vials, elapsed_time, run_efflux):
 
     # end of turbidostat() fxn
 
-def chemostat(eVOLVER, input_data, vials, elapsed_time, run_efflux):
+def chemostat(eVOLVER, input_data, vials, elapsed_time):
     OD_data = input_data['transformed']['od']
 
     ##### USER DEFINED VARIABLES #####
@@ -327,11 +325,7 @@ def chemostat(eVOLVER, input_data, vials, elapsed_time, run_efflux):
     # ipp_calculations(elapsed_time, eVOLVER) # can't be right next to update_chemo without a wait -- second command gets run before first finishes
 
     MESSAGE = ['--'] * 48
-    if run_efflux:
-        for addr in efflux_addrs:
-            MESSAGE[addr] = 13
-        eVOLVER.fluid_command(MESSAGE)
-
+    
     time.sleep(2)
     eVOLVER.update_chemo(input_data, chemostat_vials, bolus_in_s, period_config) #compares computed chemostat config to the remote one
 
