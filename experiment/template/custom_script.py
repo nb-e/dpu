@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 # If using the GUI for data visualization, do not change EXP_NAME!
 # only change if you wish to have multiple data folders within a single
 # directory for a set of scripts
-EXP_NAME = 'data'
+EXP_NAME = 'simulation'
 
 # Port for the eVOLVER connection. You should not need to change this unless you have multiple applications on a single RPi.
 EVOLVER_PORT = 8081
@@ -65,7 +65,7 @@ def turbidostat(eVOLVER, input_data, vials, elapsed_time):
     #Tunable settings for overflow protection, pump scheduling etc. Unlikely to change between expts
 
     time_out = 5 #(sec) additional amount of time to run efflux pump
-    pump_wait = 3 # (min) minimum amount of time to wait between pump events
+    pump_wait = 15 # (min) minimum amount of time to wait between pump events
 
     ##### End of Turbidostat Settings #####
 
@@ -123,8 +123,8 @@ def turbidostat(eVOLVER, input_data, vials, elapsed_time):
 
                 time_in = - (np.log(lower_thresh[x]/average_OD)*VOLUME)/flow_rate[x]
 
-                if time_in > 20:
-                    time_in = 20
+                if time_in > 30:
+                    time_in = 30
 
                 time_in = round(time_in, 2)
 
